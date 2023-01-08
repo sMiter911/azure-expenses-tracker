@@ -11,6 +11,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using AKExpensesTracker.Server.Data.Interfaces;
+using AKExpensesTracker.Shared.Responses;
+using System.Linq;
+using AKExpensesTracker.Server.Data.Models;
+using System.Collections.Generic;
+using AKExpensesTracker.Shared.DTOs;
 
 namespace AKExpensesTracker.Server.Functions
 {
@@ -37,8 +42,16 @@ namespace AKExpensesTracker.Server.Functions
             var userId = "userId";
 
             var wallets = await _walletsRepository.ListByUserIdAsync(userId);
+            var result = wallets.Select(w => new WalletSummaryDTO
+            {
+                Id = w.Id,
+                Name = w.Name,
+                Type = w.Type.Value,
+                Balance = w.Balance,
+                Currency = w.Currency
+            });
 
-            return new OkObjectResult(wallets); // Should return 200 OK
+            return new OkObjectResult(new ApiSuccessResponse<IEnumerable<WalletSummaryDTO>>($"{wallets.Count()} wallets have been retrieved", result)); // Should return 200 OK
         }
     }
 }
