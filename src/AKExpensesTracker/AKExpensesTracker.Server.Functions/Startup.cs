@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AKExpensesTracker.Server.Data;
 using Microsoft.Extensions.Configuration;
+using AKExpensesTracker.Shared;
 
 [assembly: FunctionsStartup(typeof(AKExpensesTracker.Server.Functions.Startup))]
 namespace AKExpensesTracker.Server.Functions
@@ -18,6 +19,7 @@ namespace AKExpensesTracker.Server.Functions
 
             builder.Services.AddCosmosDbClient(connectionString["CosmosDbConnectionString"]);
             builder.Services.AddCosmosDbRepositories();
+            builder.Services.AddValidators();
         }
     }
 }

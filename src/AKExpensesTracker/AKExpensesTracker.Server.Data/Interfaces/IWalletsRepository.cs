@@ -6,5 +6,7 @@ namespace AKExpensesTracker.Server.Data.Interfaces
     {
         Task<IEnumerable<Wallet>> ListByUserIdAsync(string userId);
         Task<Wallet?> GetByIdAsync(string walletId, string userId);
+        Task CreateAsync(Wallet wallet);
+        Task UpdateAsync(Wallet wallet);
     }
 }

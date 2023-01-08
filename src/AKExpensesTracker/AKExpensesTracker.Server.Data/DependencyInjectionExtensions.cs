@@ -18,6 +18,8 @@ namespace AKExpensesTracker.Server.Data
         public static void AddCosmosDbRepositories(this IServiceCollection services)
         {
             services.AddScoped<IWalletsRepository, WalletsRepository>();
+            services.AddScoped<ICosmosAttachmentsRepository, CosmosAttachmentsRepository>();
         }
+
     }
 }
