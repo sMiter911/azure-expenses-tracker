@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using AKExpensesTracker.Server.Data;
 using Microsoft.Extensions.Configuration;
 using AKExpensesTracker.Shared;
+using Microsoft.Extensions.DependencyInjection;
+using AKExpensesTracker.Server.Functions.Services;
 
 [assembly: FunctionsStartup(typeof(AKExpensesTracker.Server.Functions.Startup))]
 namespace AKExpensesTracker.Server.Functions
@@ -20,6 +22,7 @@ namespace AKExpensesTracker.Server.Functions
             builder.Services.AddCosmosDbClient(connectionString["CosmosDbConnectionString"]);
             builder.Services.AddCosmosDbRepositories();
             builder.Services.AddValidators();
+            builder.Services.AddScoped<IStorageServices>(sp => new AzureBlobStorageService(connectionString["AzureWebJobsStorage"]));
         }
     }
 }
