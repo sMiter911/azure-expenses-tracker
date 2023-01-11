@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AKExpensesTracker.Server.Data.Interfaces;
@@ -22,12 +23,17 @@ namespace AKExpensesTracker.Server.Functions
         private readonly ILogger<UploadAttachment> _logger;
         private readonly IStorageServices _storageServices;
         private readonly ICosmosAttachmentsRepository _attachmentsRepository;
+        private readonly IImageAnalyzerService _imageAnalyzerService;
 
-        public UploadAttachment(ILogger<UploadAttachment> log, IStorageServices storageServices, ICosmosAttachmentsRepository attachmentsRepository)
+        public UploadAttachment(ILogger<UploadAttachment> log, 
+            IStorageServices storageServices, 
+            ICosmosAttachmentsRepository attachmentsRepository, 
+            IImageAnalyzerService imageAnalyzerService)
         {
             _logger = log;
             _storageServices = storageServices;
             _attachmentsRepository = attachmentsRepository;
+            _imageAnalyzerService = imageAnalyzerService;
         }
 
         [FunctionName("UploadAttachment")]
@@ -48,16 +54,26 @@ namespace AKExpensesTracker.Server.Functions
                 return new BadRequestObjectResult(new ApiErrorResponse("File is required"));
             }
 
-            // Save the file and retrieve the URL
-            string url = string.Empty;
-            try
+            // Computer vision processing
+            var extension = Path.GetExtension(file.FileName);
+            var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            if (!validExtensions.Contains(extension))
             {
-                url = await _storageServices.SaveFileAsync(file.OpenReadStream(), file.FileName);
+                return new BadRequestObjectResult(new ApiErrorResponse("Invalid file type, please upload valid image file "));
             }
-            catch (NotSupportedException ex)
+
+            using (var stream  = file.OpenReadStream())
             {
-                throw new NotSupportedException($"ERROR: Unable to save the file: {ex.Message}");
+                var categories =  await _imageAnalyzerService.ExtractImageCategoriesAsync(stream);
+                if(!categories.Any(c => c.StartsWith("paper") || c.StartsWith("text")))
+                {
+                    return new BadRequestObjectResult(new ApiErrorResponse("IMAGE NOT RELEVANT: Please upload a receipt or a document with text"));
+                }
             }
+
+                // Save the file and retrieve the URL
+                string url = string.Empty;
+            url = await _storageServices.SaveFileAsync(file.OpenReadStream(), file.FileName);
 
             // Save the URL in Cosmos DB
             await _attachmentsRepository.AddAsync(new Data.Models.Attachment

@@ -30,11 +30,6 @@ public class AzureBlobStorageService : IStorageServices
 
         // Retrieve and validate the extension
         var extension = Path.GetExtension(fileName).ToLower();
-        var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-        if (!validExtensions.Contains(extension))
-        {
-            throw new NotSupportedException($"The extension {extension} is not supported");
-        }
 
         // Create a unique name for the file
         var uniqueFileName = Path.GetFileNameWithoutExtension(fileName);

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using AKExpensesTracker.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using AKExpensesTracker.Server.Functions.Services;
+using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
 
 [assembly: FunctionsStartup(typeof(AKExpensesTracker.Server.Functions.Startup))]
 namespace AKExpensesTracker.Server.Functions
@@ -22,6 +23,14 @@ namespace AKExpensesTracker.Server.Functions
             builder.Services.AddCosmosDbClient(connectionString["CosmosDbConnectionString"]);
             builder.Services.AddCosmosDbRepositories();
             builder.Services.AddValidators();
+
+            builder.Services.AddScoped(sp => new ComputerVisionClient(new ApiKeyServiceClientCredentials(connectionString["ComputerVisionApiKey"]))
+            {
+                Endpoint = connectionString["ComputerVisionEndpoint"]
+            });
+
+            builder.Services.AddScoped<IImageAnalyzerService, ImageAnalyzerService>();
+
             builder.Services.AddScoped<IStorageServices>(sp => new AzureBlobStorageService(connectionString["AzureWebJobsStorage"]));
         }
     }
